@@ -54,7 +54,7 @@ function Agent() {
     <div className='w-full h-screen bg-neutral-950 flex items-center justify-center p-6'>
       <div className="w-full max-w-2xl h-[85vh] bg-neutral-900 border border-neutral-600 rounded-xl shadow-lg flex flex-col">
         
-        {/* Header */}
+
         <header className="border-b border-neutral-700 p-4 flex items-center justify-between bg-neutral-800 rounded-t-xl">
           <button
             className="flex items-center gap-2 text-neutral-400 hover:text-white transition"
@@ -67,7 +67,7 @@ function Agent() {
           <div className="w-20"></div>
         </header>
 
-        {/* Messages */}
+
         <div className="flex-grow overflow-y-auto p-4 space-y-4">
           {messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}> 
@@ -101,7 +101,7 @@ function Agent() {
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Suggestions */}
+   
         <div className="px-4 py-2 border-t border-neutral-700 bg-neutral-900">
           <div className="text-sm text-neutral-400 mb-2">Suggestions:</div>
           <div className="flex flex-wrap gap-2">
@@ -117,7 +117,6 @@ function Agent() {
           </div>
         </div>
         
-        {/* Input Area */}
         <div className="border-t border-neutral-700 p-4 bg-neutral-900 rounded-b-xl">
           <form onSubmit={handleSendMessage} className="flex gap-2">
             <input
