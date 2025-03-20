@@ -2,64 +2,87 @@
 
 ## Overview
 
-Cognocore is an innovative notes application powered by an AI agent. This project leverages cutting-edge artificial intelligence to provide users with a seamless and intelligent note-taking experience. The AI agent is the core feature of this application, enabling users to organize, retrieve, and manage their notes efficiently.
+Cognocore is an AI-powered notes application designed to help users efficiently organize, retrieve, and manage their notes. The AI agent provides intelligent suggestions, making note-taking more seamless and effective.
 
-* you can access the website here:- [link](https://cognocore-beta.vercel.app/)
+> **Note:** The project may take up to 50 seconds to load data as the backend is deployed on Render, which has limitations. Additionally, the Gemini API has a rate limit, so avoid making frequent requests.
+
+### Live Demo
+Access the application here: [Cognocore](https://cognocore-beta.vercel.app/)
+
 ## Features
 
-- **AI-Powered Assistance**: The AI agent helps users by understanding their input, suggesting relevant actions, and organizing notes intelligently.
-- **User-Friendly Interface**: A clean and intuitive UI for a smooth user experience.
-- **Cross-Platform Access**: Access your notes from anywhere using the web application.
+- **AI-Powered Assistance**: Understands user input, organizes notes, and suggests relevant actions.
+- **Intuitive User Interface**: Clean and simple UI for a smooth experience.
+- **Smart Search**: Retrieve notes quickly using natural language queries.
+- **Cross-Platform Access**: Access your notes from anywhere via the web.
 
-## Project Setup
+## Tech Stack
+
+### Backend
+- Node.js, Express.js
+- MongoDB Atlas (Database)
+
+### Frontend
+- React.js, Tailwind CSS
+
+### Deployment
+- **Frontend**: [Vercel](https://cognocore-beta.vercel.app/)
+- **Backend**: Render
+
+## Installation & Setup
 
 Follow these steps to set up the project locally:
 
-1. **Clone the Repository**:
-    ```bash
-    git clone https://github.com/nk1044/cognocore.git
-    cd AI-Agent-Notes-App
-    ```
+### 1. Clone the Repository
+```bash
+git clone https://github.com/nk1044/cognocore.git
+cd cognocore
+```
 
-2. **Install Dependencies**:
-    Ensure you have Node.js installed. Then, run:
-    ```bash
-    cd backend
-    npm install
-    ```
-    ```bash
-    cd frontend
-    npm install
-    ```
+### 2. Install Dependencies
+#### Backend
+```bash
+cd backend
+npm install
+```
 
+#### Frontend
+```bash
+cd frontend
+npm install
+```
 
-4. **Run the Application**:
-    Start the development server:
-    ```bash
-    cd backend
-    npm run start
-    ```
-    ```bash
-    cd frontend
-    npm run dev
-    ```
-    The application will be available at `http://localhost:5173`.
+### 3. Run the Application
+#### Start the Backend Server
+```bash
+cd backend
+npm run start
+```
 
+#### Start the Frontend
+```bash
+cd frontend
+npm run dev
+```
 
-## AI Agent
+The application will be available at `http://localhost:5173`.
 
-The AI agent is the standout feature of Cognocore. It uses advanced natural language processing (NLP) to understand user inputs and provide intelligent suggestions. Key functionalities include:
+## AI Agent Capabilities
+
+The AI agent enhances the note-taking experience by providing:
 
 - **Contextual Note Organization**: Automatically categorizes and tags notes based on their content.
-- **Smart Search**: Quickly retrieves notes using natural language queries.
-- **Action Recommendations**: Suggests actions like setting reminders or linking related notes.
-
-This AI-driven approach makes Cognocore a unique and powerful tool for managing information.
+- **Smart Search**: Uses NLP to retrieve notes effectively.
+- **Action Recommendations**: Suggests actions like setting reminders and linking related notes.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+Contributions are welcome! To contribute:
+1. Fork the repository.
+2. Create a new branch for your feature or fix.
+3. Submit a pull request with your changes.
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the MIT License. See the `LICENSE` file for more details.
+
