@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, BrainCircuit, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { GetAllTasks } from './server/server.js';
 
 function App() {
-  const [tasks, setTasks] = useState([
-    { id: 1, text: "Complete project proposal", status: "pending" },
-    { id: 2, text: "Schedule team meeting", status: "completed" },
-    { id: 2, text: "Schedule team meeting", status: "completed" },
-    { id: 3, text: "Review client feedback", status: "pending" },
-    { id: 3, text: "Review client feedback", status: "pending" },
-    { id: 3, text: "Review client feedback", status: "pending" },
-    { id: 3, text: "Review client feedback", status: "pending" },
-    { id: 3, text: "Review client feedback", status: "pending" },
-  ]);
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(()=>{
+      const fetchTasks = async () => {
+          const response = await GetAllTasks();
+          setTasks(response);
+      }
+      fetchTasks();
+  }, [])
 
   return (
     <div className="w-full min-h-screen bg-neutral-950 text-neutral-200 py-10 px-6 md:px-20 lg:px-40">
@@ -67,7 +67,7 @@ function App() {
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${task.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}></div>
                         <span className={`text-lg ${task.status === 'completed' ? 'line-through text-neutral-500' : 'text-neutral-200'}`}>
-                          {task.text}
+                          {task?.title || 'title'}
                         </span>
                       </div>
                       
