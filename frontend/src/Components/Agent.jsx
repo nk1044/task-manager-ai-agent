@@ -44,7 +44,6 @@ function Agent() {
   };
 
   const taskSuggestions = [
-    'Show me all my tasks',
     'Create a new task for tomorrow',
     'Which tasks are pending?',
     'Mark the shopping task as complete'
