@@ -1,56 +1,61 @@
 import {GoogleGenerativeAI} from '@google/generative-ai';
 import { Task } from '../Models/Task.model.js';
 
-
-const CreateTask = async (title, description, status) => {
-    console.log("create a task", title, description, status);
-    
+const CreateTask = async (data) => {
+    const {title, description, status} = data;
     try {
         const TaskExists = await Task.findOne({title: title});
         if (TaskExists) {
             return "Task already exists";
         }
         const newTask = await Task.create({
-            title : title,
+            title: title,
             description: description,
             status: status
         });
         await newTask.save();
-        const CreatedTask = await Task.findById(newTask?._id);
+        const CreatedTask = await Task.findById(newTask?._id).select("-__v");
         if(CreatedTask) {
-            return  CreateTask.select("__v").select("-__v");
+            // Fixed: Return the task without __v field
+            return CreatedTask;
         }
         return "Internal server error";
         
     } catch (error) {
         console.log(error);
+        return `Internal server error: ${error.message}`;
     }
 }
 
-const UpdateTask = async (id, title, description, status) => {
+const UpdateTask = async (data) => {
+    console.log("\nUpdateTask data in function: ", data);
+    const {id, title, description, status} = data;
+    console.log("\nUpdateTask in function: ", id, title, description, status);
+
     try {
         const TaskExists = await Task.findById(id);
         if (!TaskExists) {
-            return "Task not found";
+            return "Unable to find task by id";
         }
 
         const updatedTask = await Task.findByIdAndUpdate(id, {
             title: title,
             description: description,
             status: status
-        }, {new: true});
+        }, {new: true}).select("-__v");
 
         if (updatedTask) {
-            return updatedTask.select("-__v");
+            return updatedTask;
         }
         return "Error while updating task";
     } catch (error) {
         console.log(error);
-        return "Internal Server Error";
+        return `Internal Server Error: ${error.message}`;
     }
 }
 
-const DeleteTask = async (id) => {
+const DeleteTask = async (data) => {
+    const {id} = data;
     try {
         const TaskExists = await Task.findById(id);
         if (!TaskExists) {
@@ -65,7 +70,7 @@ const DeleteTask = async (id) => {
         
     } catch (error) {
         console.log(error);
-        return "Internal server error while deleting task";
+        return `Internal server error while deleting task: ${error.message}`;
     }
 }
 
@@ -75,65 +80,116 @@ const GetAllTasks = async() => {
         if (tasks) {
             return tasks;
         }
+        return [];
     } catch (error) {
         console.log(error);
-        return "Internal server error";
+        return `Internal server error: ${error.message}`;
     }
 }
 
-const SearchTask = (searchTerm) => {
+const SearchTask = async (data) => {
+    const {query} = data;
     try {
-        const task = Task.findOne({description: { $regex: searchTerm, $options: 'i' }});
-        if (task) {
-            return task;
+        // If search term is empty, return an error message
+        if (!query || query.trim() === '') {
+            return "Please provide a search term";
         }
-        else {
-            return "Task not found";
+
+        // Escape special regex characters to prevent errors
+        const escapedTerm = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // Create a case-insensitive regex pattern for partial matching
+        const searchPattern = new RegExp(escapedTerm, 'i');
+
+        // Search across multiple fields: title, description and status
+        const tasks = await Task.find({
+            $or: [
+                { title: { $regex: searchPattern } },
+                { description: { $regex: searchPattern } },
+                { status: { $regex: searchPattern } }
+            ]
+        }).select("-__v").sort({ createdAt: -1 });
+
+        if (tasks && tasks.length > 0) {
+            return tasks;
+        } else {
+            return "No tasks found matching your search criteria";
         }
     } catch (error) {
-        console.log(error);
-        return "Internal server error";
+        console.log("Error in SearchTask:", error);
+        return `Search error: ${error.message}`;
     }
 }
 
+// Updated System Prompt
+const SystemPrompt = `
+You are an AI Task Management Assistant that helps users manage their tasks and to-do lists.
 
-const SystemPrompt = 
-`you are an ai Task/To-Do Management assistant with START, PLAN, ACTION, OBSERVE and Output State capabilities.
-you must Stricly follow the Task Schema, Tools provided to you and the Json response type.
-you must give the response in JSON format.
-You can create a new task, update a task, get all tasks, delete a task, and search for a task.
-wait for the user prompt and first PLAN using available tools, 
-After Planning, Take the action with appropriate tools and wait for the observation based on the action taken.
-Once you get the observation, Return the AI response based on the Start Prompt and observations
+# Response Format
+- You MUST ALWAYS respond with a valid JSON object
+- Every response must have a "type" field
+- Valid types are: "plan", "action", "output"
+- You must not include any text outside the JSON object
 
-Task Schema:
-- _id: string, auto-generated, and unique
-- title: string, required
-- description: string, required
-- status: string, required
-- createdAt: Date, auto-generated
-- updatedAt: Date, auto-generated
+# Task Schema
+{
+  "_id": "string (auto-generated)",
+  "title": "string (required)",
+  "description": "string (required)",
+  "status": "string (required, e.g. 'pending', 'in-progress', 'completed')",
+  "createdAt": "Date (auto-generated)",
+  "updatedAt": "Date (auto-generated)"
+}
 
-Available Tools:
-- CreateTask(title: string, description: string, status: string): Create a new task with the given title, description, and status. returns the created task(object).
-- UpdateTask(id: string, title: string, description: string, status: string): Update the task with the given id with the new title, description, and status. returns the updated task(object).
-- GetAllTasks(): Get all tasks. you can see all the tasks that have been created. and you can see the title, description, and status of each task. returns the list of tasks(array).
-- DeleteTask(id: string): Delete the task with the given id in the mongodb database. returns a message(string).
-- SearchTask(query: string): Search for a task with the given title in the mongodb database. returns the task(object).
+# Available Tools
+1. CreateTask(title, description, status)
+   - Creates a new task
+   - Parameters: title (string), description (string), status (string)
+   - Returns: Task object or error message
 
-Example:
-START
-{"type": "user", "user": "Add a task for the meeting at 2 PM tomorrow"}
-{"type": "plan", "plan": "i will try to get more context about the task from the user."}
-{"type": "output", "output": "Can you tell me more about the task?, is it a meeting or a reminder?, and is it important?"}
-{"type": "user", "user": "It's a meeting at 2 PM tomorrow on the project and it's important."}
-{"type": "plan", "plan": "i will use CreateTask tool to create a new task with the title 'Meeting at 2 PM tomorrow', description 'meeting at 2pm tomorrow to discuss about project, IMORTANT', and status 'pending'."}
-{"type": "action", "function": "CreateTask", "input": {"title": "Meeting at 2 PM tomorrow", "description": "meeting at 2pm tomorrow", "status": "pending"}}
-{"type": "observation", "observation": {"_id": "60f7b3b3b3b3b3b3b3b3b3b3", "title": "Meeting at 2 PM tomorrow", "description": "meeting at 2pm tomorrow to discuss about project, IMORTANT", "status": "pending", "createdAt": "2021-07-21T14:00:00.000Z", "updatedAt": "2021-07-21T14:00:00.000Z"}}
-{"type": "output", "output": "Task 'Meeting at 2 PM tomorrow' has been created successfully."}
+2. UpdateTask(id, title, description, status)
+   - Updates an existing task
+   - Parameters: id (string), title (string), description (string), status (string)
+   - Returns: Updated task object or error message
 
-RESPONSE TYPE: {} 
-YOU MUST FOLLOW THE RESPONSE TYPE STRICTLY AND RETURN THE RESPONSE IN JSON FORMAT
+3. GetAllTasks()
+   - Retrieves all tasks
+   - Returns: Array of task objects
+
+4. DeleteTask(id)
+   - Deletes a task
+   - Parameters: id (string)
+   - Returns: Success or error message
+
+5. SearchTask(query)
+   - Searches for tasks containing the query in the description
+   - Parameters: query (string)
+   - Returns: Task object or error message
+
+# Workflow
+1. When you receive a user message, first respond with a "plan" type
+2. If you need to use a tool, respond with an "action" type
+3. After receiving an observation, respond with an "output" type
+4. Always use JSON format for all responses
+
+# Examples
+User: {role: "user", text: "Add a meeting task for tomorrow"}
+Assistant: {"type": "plan", "plan": "I will create a new task for a meeting tomorrow by using the CreateTask tool."}
+Assistant: {"type": "action", "function": "CreateTask", "input": {"title": "Meeting", "description": "Meeting scheduled for tomorrow", "status": "pending"}}
+System: {"type": "observation", "observation": {"_id": "12345", "title": "Meeting", "description": "Meeting scheduled for tomorrow", "status": "pending", "createdAt": "2023-01-01", "updatedAt": "2023-01-01"}}
+Assistant: {"type": "output", "output": "I've added a meeting task for tomorrow. It's currently marked as pending."}
+
+
+User: {role: "user", text: "i have resudeled my meeting of 2 pm tommorow to next wednesday"}
+Assistant: {"type": "plan", "plan": "I need to find the meeting task and update its description to reflect the new date."}
+Assistant: {"type": "plan", "plan": "I will use the SearchTask tool to find the meeting task and then update the description using the UpdateTask tool."}
+Assistant: {"type": "action", "function": 'SearchTask', input: { query: 'meeting' }}
+System: {"type": "observation", "observation": {"_id": "12345", "title": "Meeting", "description": "Meeting scheduled for tomorrow", "status": "pending", "createdAt": "2023-01-01", "updatedAt": "2023-01-01"}}
+Assistant: {"type": "plan", "plan": "I found a meeting task. Now I will update the task to reflect the new date."}
+Assistant: {"type": "action", "function": 'UpdateTask', input: {"id": "12345", "title": "Meeting", "description": "Meeting rescheduled for wednesday", "status": "pending", "createdAt": "2023-01-01", "updatedAt": "2023-02-01"}}
+Assistant: {"type": "output", "output": "I have updated the meeting task to reflect the new date of next Wednesday."}
+
+Remember: ALWAYS respond with valid JSON following the structure described above.
 `;
 
 const tools = {
@@ -142,65 +198,80 @@ const tools = {
     GetAllTasks: GetAllTasks,
     DeleteTask: DeleteTask,
     SearchTask: SearchTask
-}
+};
 
-const messages = [{
-    role: "system",
-    message: SystemPrompt
-}];
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
-    systemInstruction: "you are an ai assistant to help with Task/To-Do Management.",
- });
+    systemInstruction: SystemPrompt
+});
+
+function extractJsonText(text) {
+    if (!text) return null;
+    
+    // Trim unnecessary spaces and newlines
+    text = text.trim();
+    
+    // Check for code block and extract JSON content
+    const pattern = /```json\s*([\s\S]*?)\s*```/;
+    let match = text.match(pattern);
+    let result = match ? match[1] : text; // If no match, assume text is raw JSON
+    
+    // Remove escape characters and trim
+    result = result.trim().replace(/\\/g, "");
+    
+    // Extract JSON content by locating first '{' and last '}'
+    const start = result.indexOf('{');
+    const end = result.lastIndexOf('}');
+    if (start === -1 || end === -1) return null; // Invalid JSON format
+    
+    result = result.substring(start, end + 1);
+    
+    try {
+        return JSON.parse(result);
+    } catch (error) {
+        console.error("Invalid JSON:", error);
+        return null;
+    }
+}
 
 
+// Handle user text input and get AI response
 const generateText = async (req, res) => {
     const {text} = req.body;
-    const userMessage = {
-        type: "user",
-        user: {user: text}
-    }
-    messages.push({role: "user", message: JSON.stringify(userMessage)});
-
-   try {
-     while (true) {
-         const result = await model.generateContent(text);
-         const response = result.response.text();
-        //  console.log(response);
-         
-         messages.push({role: "assistant", message: response});
-        if(!response.startsWith("{")){
-            return res.status(200).send(response);
+    const message = [];
+    message.push({
+        role: "user",
+        text: text 
+    });
+    try {
+        while(true){
+            const Prompt = JSON.stringify(message);
+            const result = await model.generateContent(Prompt);
+            let data = result.response.text();
+            // console.log("\nresponse from AI:- ", data);
+            data = extractJsonText(data);
+            console.log("\ndata:- ", data);
+            message.push(data);
+            if (data?.type === "output") {
+                return res.json({message: data.output});
+            } 
+            else if (data?.type === "action") {
+                const tool = data.function;
+                const input = data.input;
+                const response = await tools[tool](input);
+                console.log(`\nresponse of ${tool} tool:- `, response);
+                message.push({
+                    role: "system",
+                    text: JSON.stringify(response)
+                });
+            }
         }
-         const responseJSON = JSON.parse(response);
-         console.log(responseJSON);
-
-         if (responseJSON.type === 'output') {
-             return res.status(200).send(responseJSON?.output || "your response is empty");
-             break;
-         }
-         else if(responseJSON.type === 'action'){
-            
-             const tool = tools[responseJSON.function];
-             if (!tool) {
-                 messages.push({role: "assistant", message: "Invalid tool call"});
-                 continue;
-             }
-             const observation = await tool(responseJSON.input);
-             
-             const observationMessage = {
-                 type: "observation",
-                 observation
-             }
-             messages.push({role: "assistant", message: JSON.stringify(observationMessage)});
-         }
-     }
-   } catch (error) {
-       console.log(error);
-   }
-    res.send("error occured");
-}
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message: "Internal server error"});
+    }
+};
 
 export {generateText};
