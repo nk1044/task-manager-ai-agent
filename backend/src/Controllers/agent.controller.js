@@ -16,7 +16,6 @@ const CreateTask = async (data) => {
         await newTask.save();
         const CreatedTask = await Task.findById(newTask?._id).select("-__v");
         if(CreatedTask) {
-            // Fixed: Return the task without __v field
             return CreatedTask;
         }
         return "Internal server error";
@@ -90,18 +89,11 @@ const GetAllTasks = async() => {
 const SearchTask = async (data) => {
     const {query} = data;
     try {
-        // If search term is empty, return an error message
         if (!query || query.trim() === '') {
             return "Please provide a search term";
         }
-
-        // Escape special regex characters to prevent errors
         const escapedTerm = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        
-        // Create a case-insensitive regex pattern for partial matching
         const searchPattern = new RegExp(escapedTerm, 'i');
-
-        // Search across multiple fields: title, description and status
         const tasks = await Task.find({
             $or: [
                 { title: { $regex: searchPattern } },
@@ -121,7 +113,6 @@ const SearchTask = async (data) => {
     }
 }
 
-// Updated System Prompt
 const SystemPrompt = `
 You are an AI Task Management Assistant that helps users manage their tasks and to-do lists.
 
@@ -210,24 +201,19 @@ const model = genAI.getGenerativeModel({
     systemInstruction: SystemPrompt
 });
 
-function extractJsonText(text) {
+async function extractJsonText(text) {
     if (!text) return null;
-    
-    // Trim unnecessary spaces and newlines
     text = text.trim();
-    
-    // Check for code block and extract JSON content
+
     const pattern = /```json\s*([\s\S]*?)\s*```/;
     let match = text.match(pattern);
-    let result = match ? match[1] : text; // If no match, assume text is raw JSON
-    
-    // Remove escape characters and trim
+    let result = match ? match[1] : text;
+
     result = result.trim().replace(/\\/g, "");
-    
-    // Extract JSON content by locating first '{' and last '}'
+
     const start = result.indexOf('{');
     const end = result.lastIndexOf('}');
-    if (start === -1 || end === -1) return null; // Invalid JSON format
+    if (start === -1 || end === -1) return null;
     
     result = result.substring(start, end + 1);
     
@@ -240,7 +226,6 @@ function extractJsonText(text) {
 }
 
 
-// Handle user text input and get AI response
 const generateText = async (req, res) => {
     const {text} = req.body;
     const message = [];
@@ -253,8 +238,8 @@ const generateText = async (req, res) => {
             const Prompt = JSON.stringify(message);
             const result = await model.generateContent(Prompt);
             let data = result.response.text();
-            // console.log("\nresponse from AI:- ", data);
-            data = extractJsonText(data);
+
+            data = await extractJsonText(data);
             console.log("\ndata:- ", data);
             message.push(data);
             if (data?.type === "output") {
