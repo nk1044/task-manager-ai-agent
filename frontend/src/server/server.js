@@ -66,6 +66,16 @@ const UpdateTaskStatus = async (id, status) => {
     }
 }
 
+const AgentCall = async (message) => {
+    try {
+        const response = await axios.post(`${backend_url}/api/v1/agent/generateText`, { text: message });
+        console.log(response?.data?.message);
+        return response?.data?.message ?? null;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 export {
     GetAllTasks,
     GetTaskById,
@@ -73,4 +83,5 @@ export {
     UpdateTask,
     DeleteTask,
     UpdateTaskStatus,
+    AgentCall
 }
