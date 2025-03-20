@@ -51,6 +51,25 @@ const GetAllTasks = async function (req, res) {
     }
 }
 
+// Get a Task by ID -> get
+
+const GetTaskById = async function (req, res) {
+    const {id} = req.params;
+    if (!id) {
+        return res.status(400).json({message: "Task ID is required"});
+    }
+    try {
+        const TaskExists = await Task.findById(id);
+        if (!TaskExists) {
+            return res.status(404).json({message: "Task not found"});
+        }
+        return res.status(200).json({message: "Task found", data: TaskExists});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message: "Internal server error"});
+    }
+}
+
 // update a Task -> put
 
 const UpdateTask = async function (req, res) {
@@ -109,5 +128,6 @@ export {
     CreateTask,
     GetAllTasks,
     UpdateTask,
-    DeleteTask
+    DeleteTask,
+    GetTaskById
 };

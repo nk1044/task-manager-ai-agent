@@ -1,8 +1,12 @@
 import React from 'react'
 
-function Task() {
+function Task({id}) {
   return (
-    <div>Task</div>
+    <div className='w-full h-full'>
+      <div className='w-[30%] h-[40%] border rounded-2xl border-neutral-700'>
+
+      </div>
+    </div>
   )
 }
 
