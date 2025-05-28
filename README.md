@@ -7,7 +7,7 @@ This is an AI-powered notes application designed to help users efficiently organ
 **Note: The project may take up to 50 seconds to load data as the backend is deployed on Render, which has limitations. Additionally, the Gemini API has a rate limit, so avoid making frequent requests.**
 
 ### Live Demo
-Access the application here: [website](https://cognocore-beta.vercel.app/)
+Access the website: [here](https://cognocore-beta.vercel.app/)
 
 <img width="1204" alt="Screenshot 2025-03-21 at 1 10 56 AM" src="https://github.com/user-attachments/assets/d88ee168-9a58-471f-89b1-d9c8d775ac28" />
 
