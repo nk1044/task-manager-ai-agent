@@ -7,12 +7,16 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: '*',
     credentials: true,
 }));
 
 app.use('/api/v1', TaskRouter);
 app.use('/api/v1/agent', AgentRouter);
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ message: 'Server is healthy' });
+});
 
 app.get('/', (req, res)=>{
     res.send('Server is running successfully');
