@@ -1,11 +1,18 @@
-import React from 'react'
+import React from 'react';
+import { useRouter } from 'next/navigation';
 
 
 function Navbar() {
+  const router = useRouter();
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
+
   return (
     <header className="w-full border-b border-border/40 backdrop-blur-sm bg-background/80 border-neutral-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6 sm:px-8">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 cursor-pointer"
+            onClick={() => handleNavigation('/')}>
             <img
               className="text-white h-8"
               src="/task-logo.svg"
@@ -17,21 +24,19 @@ function Navbar() {
           </div>
           
           <nav className="hidden md:flex items-center gap-8">
-            <a href="/features" className="text-sm hover:text-foreground transition-colors text-muted-foreground">
-              Features
-            </a>
-            <a href="/pricing" className="text-sm hover:text-foreground transition-colors text-muted-foreground">
-              Pricing
-            </a>
-            <a href="/docs" className="text-sm hover:text-foreground transition-colors text-muted-foreground">
+            <button className="text-sm cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+            onClick={() => handleNavigation('/tasks')}>
+              tasks
+            </button>
+            <button className="text-sm cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+            onClick={() => handleNavigation('/docs')}>
               Docs
-            </a>
-            <a
-              href="/dashboard"
-              className="rounded-full bg-foreground text-background hover:opacity-90 font-medium text-sm px-4 py-2 transition-all"
+            </button>
+            <button
+              className="rounded-full cursor-pointer bg-foreground text-background hover:opacity-90 font-medium text-sm px-4 py-2 transition-all"
             >
               Sign In
-            </a>
+            </button>
           </nav>
         </div>
       </header>

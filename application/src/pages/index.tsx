@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Timer,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 
 const geistSans = Geist({
@@ -38,7 +39,14 @@ const features = [
   }
 ]
 
-export default function Home() {
+export default function Home() {  
+
+  const router = useRouter();
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
+
+
   return (
     <div
       className={`${geistSans.className} ${geistMono.className} font-sans min-h-screen bg-background text-foreground`}
@@ -76,7 +84,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-16">
               <button
                 className="group rounded-full cursor-pointer border border-transparent bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-semibold text-lg h-14 px-8 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
-              >
+                onClick={() => handleNavigation('/tasks')}>
                 Get Started
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -84,7 +92,7 @@ export default function Home() {
               </button>
               <button
                 className="rounded-full cursor-pointer border border-neutral-800 hover:bg-muted/50 hover:border-border/60 font-medium text-lg h-14 px-8 transition-all duration-200 flex items-center gap-2"
-              >
+                onClick={() => handleNavigation('/docs')}>
                 Docs
               </button>
             </div>
@@ -158,7 +166,7 @@ export default function Home() {
           </p>
           <button
             className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-semibold text-lg h-14 px-8 transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
+            onClick={() => handleNavigation('/tasks')}>
             Try it now
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
