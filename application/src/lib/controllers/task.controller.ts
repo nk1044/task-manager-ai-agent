@@ -12,16 +12,17 @@ interface TaskData {
 
 const createTask = async (data: TaskData) => {
   try {
+    console.log("Creating task with data:", data);
     const user = await User.findById(data.owner);
     if (!user) {
       console.log("User not found for creating task");
       return null;
     }
-
+    
     const createdTask = await Task.create({
       title: data.title,
       description: data.description,
-      dueDate: data.dueDate || new Date(),
+      dueDate: data.dueDate,
       owner: data.owner,
       status: data.status || "pending",
     });
