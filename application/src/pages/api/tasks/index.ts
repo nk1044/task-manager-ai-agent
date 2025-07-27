@@ -1,14 +1,24 @@
 import { connectDB } from "@/lib/config/db";
 import { TaskController } from "@/lib/controllers/task.controller";
 import { withAuth } from "@/lib/middleware/auth.middleware";
+import { NextApiResponse } from "next";
+import { NextApiRequestWithSession } from "@/lib/config/types";
+import { User } from "@/lib/models/user.model";
 
-async function handler(req: any, res: any) {
+async function handler(req: NextApiRequestWithSession, res: NextApiResponse) {
     await connectDB();
-    const userId = req.session?.userId as string;
+    const user = req.session.user;
+    if(!user || !user.email) {
+        return res.status(401).json({ error: "User not authenticated" });
+    }
+    const existingUser = await User.findOne({ email: user.email });
+    if (!existingUser) {
+        return res.status(401).json({ error: "User not found" });
+    }
+    const userId = existingUser._id.toString();    
     if (!userId) {
         return res.status(401).json({ error: "User not authenticated" });
     }
-
     switch (req.method) {
         case "GET":
             if (req.query.id) {
@@ -43,7 +53,7 @@ async function handler(req: any, res: any) {
             if (!id || !updateData) {
                 return res.status(400).json({ error: "Task ID and update data are required" });
             }
-            const updatedTask = await TaskController.updateTask(id, updateData);
+            const updatedTask = await TaskController.updateTask(id, userId, updateData);
             if (!updatedTask) {
                 return res.status(404).json({ error: "Task not found or update failed" });
             }
